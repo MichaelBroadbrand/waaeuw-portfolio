@@ -803,15 +803,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      // Marquee speed shift based on scroll proximity
-      if (marqueeEl) {
-        var mProgress = getScrollProgress(marqueeEl);
-        var track = marqueeEl.querySelector('.marquee__track');
-        if (track && mProgress > 0.3 && mProgress < 1.2) {
-          var speedFactor = 1 + (mProgress - 0.3) * 2;
-          track.style.animationDuration = (20 / speedFactor) + 's';
-        }
-      }
     }
 
     window.addEventListener('scroll', onScrollLinked, { passive: true });
