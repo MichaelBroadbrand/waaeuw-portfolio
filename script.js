@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var p = document.createElement('p');
       p.textContent = bootLines[lineIndex];
       bootLog.appendChild(p);
+      playBootBeep();
       lineIndex++;
       setTimeout(typeLine, 100);
     }
@@ -547,6 +548,193 @@ document.addEventListener('DOMContentLoaded', function () {
         openPalette();
       }
     });
+  }
+
+  /* ================================================
+     MATRIX CODE RAIN
+     ================================================ */
+  var matrixCanvas = document.getElementById('matrix-rain');
+  if (matrixCanvas && !prefersReduced) {
+    var ctx = matrixCanvas.getContext('2d');
+    var matrixChars = 'LUAU ROBLOX STUDIO OOP DATASTORE REMOTE EVENT SCRIPT GAME MODULE FUNCTION LOCAL RETURN END IF THEN ELSE FOR WHILE DO REPEAT UNTIL 01'.split('');
+    var matrixFontSize = 14;
+    var matrixColumns;
+    var matrixDrops;
+
+    function initMatrix() {
+      matrixCanvas.width = window.innerWidth;
+      matrixCanvas.height = window.innerHeight;
+      matrixColumns = Math.floor(matrixCanvas.width / matrixFontSize);
+      matrixDrops = [];
+      for (var mi = 0; mi < matrixColumns; mi++) {
+        matrixDrops[mi] = Math.random() * -100;
+      }
+    }
+
+    initMatrix();
+    window.addEventListener('resize', initMatrix);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+      ctx.fillStyle = '#FF0000';
+      ctx.font = matrixFontSize + 'px monospace';
+
+      for (var mi = 0; mi < matrixDrops.length; mi++) {
+        var text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+        ctx.fillText(text, mi * matrixFontSize, matrixDrops[mi] * matrixFontSize);
+        if (matrixDrops[mi] * matrixFontSize > matrixCanvas.height && Math.random() > 0.975) {
+          matrixDrops[mi] = 0;
+        }
+        matrixDrops[mi]++;
+      }
+      requestAnimationFrame(drawMatrix);
+    }
+
+    drawMatrix();
+  }
+
+  /* ================================================
+     PARALLAX SCROLLING
+     ================================================ */
+  if (!prefersReduced && !isTouch) {
+    var parallaxEls = document.querySelectorAll('[data-parallax]');
+    var heroSection = document.querySelector('.hero');
+
+    if (parallaxEls.length) {
+      window.addEventListener('scroll', function () {
+        var scrollY = window.scrollY;
+        var heroBottom = heroSection ? heroSection.offsetTop + heroSection.offsetHeight : 600;
+
+        if (scrollY < heroBottom) {
+          parallaxEls.forEach(function (el) {
+            var speed = parseFloat(el.getAttribute('data-parallax')) || 0.3;
+            var yOffset = -(scrollY * speed);
+            el.style.transform = 'translateY(' + yOffset + 'px)';
+          });
+        }
+      }, { passive: true });
+    }
+  }
+
+  /* ================================================
+     SOUND EFFECTS (Web Audio API)
+     ================================================ */
+  var soundEnabled = localStorage.getItem('sfx') !== 'off';
+  var soundToggle = document.getElementById('sound-toggle');
+  var audioCtx = null;
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, type, volume) {
+    if (!soundEnabled) return;
+    try {
+      var ac = getAudioCtx();
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = type || 'square';
+      osc.frequency.value = freq;
+      gain.gain.value = volume || 0.04;
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + duration);
+    } catch (e) {}
+  }
+
+  function playBootBeep() { playTone(800, 0.06, 'square', 0.03); }
+  function playKeyClick() { playTone(1200, 0.03, 'square', 0.02); }
+  function playHoverTone() { playTone(600, 0.08, 'sine', 0.02); }
+  function playEnterTone() { playTone(400, 0.12, 'sawtooth', 0.03); }
+
+  if (soundToggle) {
+    soundToggle.textContent = soundEnabled ? '[SFX: ON]' : '[SFX: OFF]';
+    soundToggle.addEventListener('click', function () {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('sfx', soundEnabled ? 'on' : 'off');
+      soundToggle.textContent = soundEnabled ? '[SFX: ON]' : '[SFX: OFF]';
+      if (soundEnabled) playTone(500, 0.1, 'sine', 0.03);
+    });
+  }
+
+  // Terminal keypress sounds
+  var termInputForSound = document.getElementById('terminal-input');
+  if (termInputForSound) {
+    termInputForSound.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        playEnterTone();
+      } else if (e.key.length === 1) {
+        playKeyClick();
+      }
+    });
+  }
+
+  // Button hover sounds
+  var allButtons = document.querySelectorAll('.btn, button');
+  allButtons.forEach(function (b) {
+    b.addEventListener('mouseenter', function () {
+      playHoverTone();
+    });
+  });
+
+  /* ================================================
+     SCROLL-LINKED ANIMATIONS
+     ================================================ */
+  if (!prefersReduced) {
+    var projectCards = document.querySelectorAll('.project');
+    var sectionHeaders = document.querySelectorAll('.section__header');
+    var marqueeEl = document.querySelector('.marquee');
+
+    function getScrollProgress(el) {
+      var rect = el.getBoundingClientRect();
+      var windowH = window.innerHeight;
+      // 0 = element just entered viewport at bottom, 1 = element at top
+      var progress = 1 - (rect.top / windowH);
+      return Math.max(0, Math.min(1, progress));
+    }
+
+    function onScrollLinked() {
+      // Project cards: slide in from left based on scroll position
+      projectCards.forEach(function (card) {
+        var progress = getScrollProgress(card);
+        if (progress > 0.1 && progress < 1.2) {
+          var slideX = Math.max(0, (1 - ((progress - 0.1) / 0.4)) * 30);
+          var fadeIn = Math.min(1, (progress - 0.1) / 0.3);
+          card.style.opacity = fadeIn;
+          card.style.transform = 'translateX(' + slideX + 'px)';
+        }
+      });
+
+      // Section headers: horizontal slide with fade
+      sectionHeaders.forEach(function (header) {
+        var progress = getScrollProgress(header);
+        if (progress > 0 && progress < 1.2) {
+          var slideX = Math.max(0, (1 - (progress / 0.5)) * 40);
+          var fadeIn = Math.min(1, progress / 0.35);
+          header.style.opacity = fadeIn;
+          header.style.transform = 'translateX(-' + slideX + 'px)';
+        }
+      });
+
+      // Marquee speed shift based on scroll proximity
+      if (marqueeEl) {
+        var mProgress = getScrollProgress(marqueeEl);
+        var track = marqueeEl.querySelector('.marquee__track');
+        if (track && mProgress > 0.3 && mProgress < 1.2) {
+          var speedFactor = 1 + (mProgress - 0.3) * 2;
+          track.style.animationDuration = (20 / speedFactor) + 's';
+        }
+      }
+    }
+
+    window.addEventListener('scroll', onScrollLinked, { passive: true });
+    onScrollLinked();
   }
 
   /* ================================================

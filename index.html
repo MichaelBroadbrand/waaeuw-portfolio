@@ -19,11 +19,21 @@
   <!-- SCROLL PROGRESS -->
   <div class="progress" id="progress"></div>
 
+  <!-- MATRIX RAIN -->
+  <canvas id="matrix-rain"></canvas>
+
   <!-- HEADER -->
-  <header class="hero">
-    <h1 class="hero__name" data-text="WAAEUW">WAAEUW</h1>
-    <p class="hero__role">ROBLOX DEVELOPER</p>
-    <p class="hero__tagline">I BUILD SYSTEMS THAT WORK.<span class="cursor"></span></p>
+  <header class="hero" data-parallax-container>
+    <pre class="hero__ascii" data-parallax="0.15" aria-hidden="true">
+ ██╗    ██╗ █████╗  █████╗ ███████╗██╗   ██╗██╗    ██╗
+ ██║    ██║██╔══██╗██╔══██╗██╔════╝██║   ██║██║    ██║
+ ██║ █╗ ██║███████║███████║█████╗  ██║   ██║██║ █╗ ██║
+ ██║███╗██║██╔══██║██╔══██║██╔══╝  ██║   ██║██║███╗██║
+ ╚███╔███╔╝██║  ██║██║  ██║███████╗╚██████╔╝╚███╔███╔╝
+  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝  ╚══╝╚══╝</pre>
+    <h1 class="hero__name" data-text="WAAEUW" data-parallax="0.3">WAAEUW</h1>
+    <p class="hero__role" data-parallax="0.5">ROBLOX DEVELOPER</p>
+    <p class="hero__tagline" data-parallax="0.6">I BUILD SYSTEMS THAT WORK.<span class="cursor"></span></p>
   </header>
 
   <!-- MARQUEE -->
@@ -180,6 +190,9 @@
 
   <!-- THEME TOGGLE -->
   <button class="theme-toggle" id="theme-toggle">[DARK]</button>
+
+  <!-- SOUND TOGGLE -->
+  <button class="sound-toggle" id="sound-toggle">[SFX: ON]</button>
 
   <script src="script.js"></script>
 </body>

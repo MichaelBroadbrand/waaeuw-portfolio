@@ -151,6 +151,37 @@ body::before {
    HERO
    ============================================ */
 
+/* ============================================
+   MATRIX RAIN CANVAS
+   ============================================ */
+
+#matrix-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.06;
+}
+
+/* ============================================
+   ASCII ART
+   ============================================ */
+
+.hero__ascii {
+  font-family: var(--font-body);
+  font-size: clamp(0.3rem, 1.1vw, 0.7rem);
+  line-height: 1.2;
+  color: var(--red);
+  opacity: 0.25;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  white-space: pre;
+  will-change: transform;
+}
+
 .hero {
   padding: var(--space-lg) var(--space);
   border-bottom: var(--border);
@@ -607,6 +638,15 @@ body::before {
   .project:hover {
     padding-left: 1rem;
   }
+
+  .hero__ascii {
+    font-size: 0.25rem;
+  }
+
+  .sound-toggle {
+    top: 42px;
+    right: var(--space);
+  }
 }
 
 /* ============================================
@@ -844,6 +884,52 @@ body.custom-cursor .cursor-trail {
   color: var(--white);
 }
 
+/* ============================================
+   FEATURE: SOUND TOGGLE
+   ============================================ */
+
+.sound-toggle {
+  position: fixed;
+  top: 12px;
+  right: calc(var(--space) + 90px);
+  z-index: 10000;
+  font-family: var(--font-body);
+  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 0.8rem;
+  border: 2px solid var(--black);
+  background: transparent;
+  color: var(--black);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sound-toggle:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* ============================================
+   PARALLAX ELEMENTS
+   ============================================ */
+
+[data-parallax] {
+  will-change: transform;
+}
+
+/* ============================================
+   SCROLL-LINKED ANIMATIONS
+   ============================================ */
+
+.section__header {
+  transition: opacity 400ms ease-out, transform 400ms ease-out;
+}
+
+.project {
+  transition: padding-left 0.2s ease, opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
 body.dark {
   --black: #fff;
   --white: #000;
@@ -895,5 +981,17 @@ body.dark {
   .section::after {
     transform: scaleX(1);
     transition: none;
+  }
+
+  #matrix-rain {
+    display: none;
+  }
+
+  [data-parallax] {
+    transform: none !important;
+  }
+
+  .hero__ascii {
+    animation: none;
   }
 }
