@@ -679,36 +679,92 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ================================================
-     CRT FILM GRAIN / STATIC NOISE
+     INTERACTIVE DOT GRID
      ================================================ */
-  var noiseCanvas = document.getElementById('crt-noise');
-  if (noiseCanvas && !prefersReduced) {
-    var nCtx = noiseCanvas.getContext('2d');
-    // Keep canvas small — CSS stretches it with pixelated rendering for chunky grain
-    noiseCanvas.width = 128;
-    noiseCanvas.height = 128;
+  var dotCanvas = document.getElementById('dot-grid');
+  var dotHero = document.querySelector('.hero');
 
-    var noiseImageData = nCtx.createImageData(128, 128);
-    var noiseFrame = 0;
+  if (dotCanvas && dotHero && !prefersReduced) {
+    var dCtx = dotCanvas.getContext('2d');
+    var dots = [];
+    var dotSpacing = 35;
+    var dotRadius = 1.5;
+    var dotMouseX = -1000;
+    var dotMouseY = -1000;
+    var dotRepelRadius = 100;
+    var dotRepelStrength = 25;
+    var dotEasing = 0.06;
 
-    function drawNoise() {
-      noiseFrame++;
-      // Update every 3 frames for a stepping/flickering look
-      if (noiseFrame % 3 === 0) {
-        var data = noiseImageData.data;
-        for (var i = 0; i < data.length; i += 4) {
-          var val = Math.random() * 255;
-          data[i] = val;
-          data[i + 1] = val;
-          data[i + 2] = val;
-          data[i + 3] = 255;
+    function initDots() {
+      dotCanvas.width = dotHero.offsetWidth;
+      dotCanvas.height = dotHero.offsetHeight;
+      dots = [];
+      var cols = Math.floor(dotCanvas.width / dotSpacing);
+      var rows = Math.floor(dotCanvas.height / dotSpacing);
+      var offsetX = (dotCanvas.width - cols * dotSpacing) / 2;
+      var offsetY = (dotCanvas.height - rows * dotSpacing) / 2;
+
+      for (var r = 0; r <= rows; r++) {
+        for (var c = 0; c <= cols; c++) {
+          var ox = offsetX + c * dotSpacing;
+          var oy = offsetY + r * dotSpacing;
+          dots.push({ ox: ox, oy: oy, x: ox, y: oy });
         }
-        nCtx.putImageData(noiseImageData, 0, 0);
       }
-      requestAnimationFrame(drawNoise);
     }
 
-    drawNoise();
+    initDots();
+    window.addEventListener('resize', initDots);
+
+    dotHero.addEventListener('mousemove', function (e) {
+      var rect = dotCanvas.getBoundingClientRect();
+      dotMouseX = e.clientX - rect.left;
+      dotMouseY = e.clientY - rect.top;
+    });
+
+    dotHero.addEventListener('mouseleave', function () {
+      dotMouseX = -1000;
+      dotMouseY = -1000;
+    });
+
+    function drawDots() {
+      dCtx.clearRect(0, 0, dotCanvas.width, dotCanvas.height);
+
+      for (var i = 0; i < dots.length; i++) {
+        var dot = dots[i];
+        var dx = dot.ox - dotMouseX;
+        var dy = dot.oy - dotMouseY;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < dotRepelRadius) {
+          var force = (1 - dist / dotRepelRadius) * dotRepelStrength;
+          var angle = Math.atan2(dy, dx);
+          var targetX = dot.ox + Math.cos(angle) * force;
+          var targetY = dot.oy + Math.sin(angle) * force;
+          dot.x += (targetX - dot.x) * 0.2;
+          dot.y += (targetY - dot.y) * 0.2;
+        } else {
+          dot.x += (dot.ox - dot.x) * dotEasing;
+          dot.y += (dot.oy - dot.y) * dotEasing;
+        }
+
+        // Dots glow brighter when displaced
+        var displacement = Math.sqrt(
+          (dot.x - dot.ox) * (dot.x - dot.ox) +
+          (dot.y - dot.oy) * (dot.y - dot.oy)
+        );
+        var alpha = 0.12 + Math.min(displacement / 12, 0.7);
+
+        dCtx.beginPath();
+        dCtx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2);
+        dCtx.fillStyle = 'rgba(255, 0, 0, ' + alpha + ')';
+        dCtx.fill();
+      }
+
+      requestAnimationFrame(drawDots);
+    }
+
+    drawDots();
   }
 
   /* ================================================
