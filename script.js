@@ -679,56 +679,36 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ================================================
-     MATRIX CODE RAIN
+     CRT FILM GRAIN / STATIC NOISE
      ================================================ */
-  var matrixCanvas = document.getElementById('matrix-rain');
-  var matrixHero = document.querySelector('.hero');
-  if (matrixCanvas && matrixHero && !prefersReduced) {
-    var ctx = matrixCanvas.getContext('2d');
-    var matrixChars = 'LUAU ROBLOX STUDIO OOP DATASTORE REMOTE EVENT SCRIPT GAME MODULE FUNCTION LOCAL RETURN END IF THEN ELSE FOR WHILE DO REPEAT UNTIL 01'.split('');
-    var matrixFontSize = 14;
-    var matrixColumns;
-    var matrixDrops;
+  var noiseCanvas = document.getElementById('crt-noise');
+  if (noiseCanvas && !prefersReduced) {
+    var nCtx = noiseCanvas.getContext('2d');
+    // Keep canvas small — CSS stretches it with pixelated rendering for chunky grain
+    noiseCanvas.width = 128;
+    noiseCanvas.height = 128;
 
-    function initMatrix() {
-      matrixCanvas.width = matrixHero.offsetWidth;
-      matrixCanvas.height = matrixHero.offsetHeight;
-      matrixColumns = Math.floor(matrixCanvas.width / matrixFontSize);
-      matrixDrops = [];
-      for (var mi = 0; mi < matrixColumns; mi++) {
-        matrixDrops[mi] = Math.random() * -50;
+    var noiseImageData = nCtx.createImageData(128, 128);
+    var noiseFrame = 0;
+
+    function drawNoise() {
+      noiseFrame++;
+      // Update every 3 frames for a stepping/flickering look
+      if (noiseFrame % 3 === 0) {
+        var data = noiseImageData.data;
+        for (var i = 0; i < data.length; i += 4) {
+          var val = Math.random() * 255;
+          data[i] = val;
+          data[i + 1] = val;
+          data[i + 2] = val;
+          data[i + 3] = 255;
+        }
+        nCtx.putImageData(noiseImageData, 0, 0);
       }
+      requestAnimationFrame(drawNoise);
     }
 
-    initMatrix();
-    window.addEventListener('resize', initMatrix);
-
-    var matrixTrailLength = 8;
-
-    function drawMatrix() {
-      ctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-      ctx.font = matrixFontSize + 'px monospace';
-
-      for (var mi = 0; mi < matrixDrops.length; mi++) {
-        for (var t = 0; t < matrixTrailLength; t++) {
-          var row = matrixDrops[mi] - t;
-          if (row < 0) continue;
-          var y = row * matrixFontSize;
-          if (y > matrixCanvas.height) continue;
-          var alpha = t === 0 ? 1 : (1 - t / matrixTrailLength) * 0.7;
-          ctx.fillStyle = 'rgba(255, 0, 0, ' + alpha + ')';
-          var text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
-          ctx.fillText(text, mi * matrixFontSize, y);
-        }
-        if (matrixDrops[mi] * matrixFontSize > matrixCanvas.height + matrixTrailLength * matrixFontSize && Math.random() > 0.975) {
-          matrixDrops[mi] = 0;
-        }
-        matrixDrops[mi]++;
-      }
-      requestAnimationFrame(drawMatrix);
-    }
-
-    drawMatrix();
+    drawNoise();
   }
 
   /* ================================================
