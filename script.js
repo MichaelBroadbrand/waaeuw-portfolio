@@ -682,7 +682,8 @@ document.addEventListener('DOMContentLoaded', function () {
      MATRIX CODE RAIN
      ================================================ */
   var matrixCanvas = document.getElementById('matrix-rain');
-  if (matrixCanvas && !prefersReduced) {
+  var matrixHero = document.querySelector('.hero');
+  if (matrixCanvas && matrixHero && !prefersReduced) {
     var ctx = matrixCanvas.getContext('2d');
     var matrixChars = 'LUAU ROBLOX STUDIO OOP DATASTORE REMOTE EVENT SCRIPT GAME MODULE FUNCTION LOCAL RETURN END IF THEN ELSE FOR WHILE DO REPEAT UNTIL 01'.split('');
     var matrixFontSize = 14;
@@ -690,32 +691,31 @@ document.addEventListener('DOMContentLoaded', function () {
     var matrixDrops;
 
     function initMatrix() {
-      matrixCanvas.width = window.innerWidth;
-      matrixCanvas.height = window.innerHeight;
+      matrixCanvas.width = matrixHero.offsetWidth;
+      matrixCanvas.height = matrixHero.offsetHeight;
       matrixColumns = Math.floor(matrixCanvas.width / matrixFontSize);
       matrixDrops = [];
       for (var mi = 0; mi < matrixColumns; mi++) {
-        matrixDrops[mi] = Math.random() * -100;
+        matrixDrops[mi] = Math.random() * -50;
       }
     }
 
     initMatrix();
     window.addEventListener('resize', initMatrix);
 
-    var matrixTrailLength = 6;
+    var matrixTrailLength = 8;
 
     function drawMatrix() {
       ctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
       ctx.font = matrixFontSize + 'px monospace';
 
       for (var mi = 0; mi < matrixDrops.length; mi++) {
-        // Draw trail behind the head
         for (var t = 0; t < matrixTrailLength; t++) {
           var row = matrixDrops[mi] - t;
           if (row < 0) continue;
           var y = row * matrixFontSize;
           if (y > matrixCanvas.height) continue;
-          var alpha = t === 0 ? 1 : (1 - t / matrixTrailLength) * 0.5;
+          var alpha = t === 0 ? 1 : (1 - t / matrixTrailLength) * 0.7;
           ctx.fillStyle = 'rgba(255, 0, 0, ' + alpha + ')';
           var text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
           ctx.fillText(text, mi * matrixFontSize, y);
