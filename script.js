@@ -33,6 +33,52 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (e) {}
   }
 
+  function playBootSound() {
+    if (!soundEnabled) return;
+    try {
+      var ac = getAudioCtx();
+      var now = ac.currentTime;
+      // POST beep - classic single BIOS tone
+      var osc1 = ac.createOscillator();
+      var g1 = ac.createGain();
+      osc1.type = 'square';
+      osc1.frequency.value = 1000;
+      g1.gain.setValueAtTime(0.05, now);
+      g1.gain.setValueAtTime(0.05, now + 0.15);
+      g1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc1.connect(g1);
+      g1.connect(ac.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.2);
+      // Second lower tone — disk spin-up feel
+      var osc2 = ac.createOscillator();
+      var g2 = ac.createGain();
+      osc2.type = 'sawtooth';
+      osc2.frequency.setValueAtTime(120, now + 0.25);
+      osc2.frequency.linearRampToValueAtTime(200, now + 0.6);
+      osc2.frequency.linearRampToValueAtTime(180, now + 0.9);
+      g2.gain.setValueAtTime(0, now + 0.25);
+      g2.gain.linearRampToValueAtTime(0.02, now + 0.35);
+      g2.gain.setValueAtTime(0.02, now + 0.7);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      osc2.connect(g2);
+      g2.connect(ac.destination);
+      osc2.start(now + 0.25);
+      osc2.stop(now + 0.9);
+      // Third tone — success chime
+      var osc3 = ac.createOscillator();
+      var g3 = ac.createGain();
+      osc3.type = 'sine';
+      osc3.frequency.value = 800;
+      g3.gain.setValueAtTime(0, now + 0.95);
+      g3.gain.linearRampToValueAtTime(0.03, now + 1.0);
+      g3.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+      osc3.connect(g3);
+      g3.connect(ac.destination);
+      osc3.start(now + 0.95);
+      osc3.stop(now + 1.3);
+    } catch (e) {}
+  }
   function playBootBeep() { playTone(800, 0.06, 'square', 0.03); }
   function playKeyClick() { playTone(1200, 0.03, 'square', 0.02); }
   function playHoverTone() { playTone(600, 0.08, 'sine', 0.02); }
@@ -157,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '> READY.'
     ];
 
+    playBootSound();
     var lineIndex = 0;
     function typeLine() {
       if (lineIndex >= bootLines.length) {
@@ -174,7 +221,6 @@ document.addEventListener('DOMContentLoaded', function () {
       var p = document.createElement('p');
       p.textContent = bootLines[lineIndex];
       bootLog.appendChild(p);
-      playBootBeep();
       lineIndex++;
       setTimeout(typeLine, 100);
     }
