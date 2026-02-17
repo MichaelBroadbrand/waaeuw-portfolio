@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function scrambleAscii() {
     if (!asciiEl || prefersReduced) return;
-    asciiOriginal = asciiEl.textContent;
+    if (!asciiOriginal) asciiOriginal = asciiEl.textContent;
     var lines = asciiOriginal.split('\n');
     var totalFrames = 30;
     var frame = 0;
@@ -164,6 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (frame > totalFrames) {
         clearInterval(asciiInterval);
         asciiEl.textContent = asciiOriginal;
+        setTimeout(scrambleAscii, 5000);
       }
     }, 50);
   }
