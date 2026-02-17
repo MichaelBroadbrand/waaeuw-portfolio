@@ -682,9 +682,8 @@ document.addEventListener('DOMContentLoaded', function () {
      INTERACTIVE DOT GRID
      ================================================ */
   var dotCanvas = document.getElementById('dot-grid');
-  var dotHero = document.querySelector('.hero');
 
-  if (dotCanvas && dotHero && !prefersReduced) {
+  if (dotCanvas && !prefersReduced) {
     var dCtx = dotCanvas.getContext('2d');
     var dots = [];
     var dotSpacing = 35;
@@ -696,8 +695,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var dotEasing = 0.06;
 
     function initDots() {
-      dotCanvas.width = dotHero.offsetWidth;
-      dotCanvas.height = dotHero.offsetHeight;
+      dotCanvas.width = window.innerWidth;
+      dotCanvas.height = window.innerHeight;
       dots = [];
       var cols = Math.floor(dotCanvas.width / dotSpacing);
       var rows = Math.floor(dotCanvas.height / dotSpacing);
@@ -716,13 +715,12 @@ document.addEventListener('DOMContentLoaded', function () {
     initDots();
     window.addEventListener('resize', initDots);
 
-    dotHero.addEventListener('mousemove', function (e) {
-      var rect = dotCanvas.getBoundingClientRect();
-      dotMouseX = e.clientX - rect.left;
-      dotMouseY = e.clientY - rect.top;
+    document.addEventListener('mousemove', function (e) {
+      dotMouseX = e.clientX;
+      dotMouseY = e.clientY;
     });
 
-    dotHero.addEventListener('mouseleave', function () {
+    document.addEventListener('mouseleave', function () {
       dotMouseX = -1000;
       dotMouseY = -1000;
     });
