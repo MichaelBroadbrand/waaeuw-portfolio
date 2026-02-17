@@ -88,6 +88,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if (taglineCursor) taglineEl.appendChild(taglineCursor);
   }
 
+  /* ================================================
+     ASCII ART SCRAMBLE ANIMATION
+     ================================================ */
+  var asciiEl = document.querySelector('.hero__ascii');
+  var asciiOriginal = '';
+  var asciiChars = '/@#$%&*!=+<>[]{}|\\^~`;:.,01';
+
+  function scrambleAscii() {
+    if (!asciiEl || prefersReduced) return;
+    asciiOriginal = asciiEl.textContent;
+    var lines = asciiOriginal.split('\n');
+    var totalFrames = 30;
+    var frame = 0;
+
+    var asciiInterval = setInterval(function () {
+      var result = lines.map(function (line) {
+        return line.split('').map(function (ch, i) {
+          if (ch === ' ' || ch === '\n') return ch;
+          var revealPoint = (i / line.length) * totalFrames;
+          if (frame >= revealPoint) return ch;
+          return asciiChars[Math.floor(Math.random() * asciiChars.length)];
+        }).join('');
+      }).join('\n');
+
+      asciiEl.textContent = result;
+      frame++;
+
+      if (frame > totalFrames) {
+        clearInterval(asciiInterval);
+        asciiEl.textContent = asciiOriginal;
+      }
+    }, 50);
+  }
+
   function typeTagline() {
     if (!taglineEl || !taglineText) return;
     var i = 0;
@@ -131,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
           document.body.classList.remove('boot-active');
           bootEl.addEventListener('transitionend', function () {
             bootEl.remove();
+            scrambleAscii();
             typeTagline();
           });
         }, 400);
@@ -152,6 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
         taglineEl.insertBefore(document.createTextNode(taglineText), taglineCursor);
       }
     } else {
+      scrambleAscii();
       typeTagline();
     }
   }
