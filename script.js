@@ -3,6 +3,52 @@ document.addEventListener('DOMContentLoaded', function () {
   var isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   /* ================================================
+     SOUND EFFECTS (Web Audio API) — init early for boot
+     ================================================ */
+  var soundEnabled = localStorage.getItem('sfx') !== 'off';
+  var soundToggle = document.getElementById('sound-toggle');
+  var audioCtx = null;
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, type, volume) {
+    if (!soundEnabled) return;
+    try {
+      var ac = getAudioCtx();
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = type || 'square';
+      osc.frequency.value = freq;
+      gain.gain.value = volume || 0.04;
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + duration);
+    } catch (e) {}
+  }
+
+  function playBootBeep() { playTone(800, 0.06, 'square', 0.03); }
+  function playKeyClick() { playTone(1200, 0.03, 'square', 0.02); }
+  function playHoverTone() { playTone(600, 0.08, 'sine', 0.02); }
+  function playEnterTone() { playTone(400, 0.12, 'sawtooth', 0.03); }
+
+  if (soundToggle) {
+    soundToggle.textContent = soundEnabled ? '[SFX: ON]' : '[SFX: OFF]';
+    soundToggle.addEventListener('click', function () {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('sfx', soundEnabled ? 'on' : 'off');
+      soundToggle.textContent = soundEnabled ? '[SFX: ON]' : '[SFX: OFF]';
+      if (soundEnabled) playTone(500, 0.1, 'sine', 0.03);
+    });
+  }
+
+  /* ================================================
      THEME TOGGLE (load early to prevent flash)
      ================================================ */
   var themeToggle = document.getElementById('theme-toggle');
@@ -615,52 +661,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }, { passive: true });
     }
-  }
-
-  /* ================================================
-     SOUND EFFECTS (Web Audio API)
-     ================================================ */
-  var soundEnabled = localStorage.getItem('sfx') !== 'off';
-  var soundToggle = document.getElementById('sound-toggle');
-  var audioCtx = null;
-
-  function getAudioCtx() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    return audioCtx;
-  }
-
-  function playTone(freq, duration, type, volume) {
-    if (!soundEnabled) return;
-    try {
-      var ac = getAudioCtx();
-      var osc = ac.createOscillator();
-      var gain = ac.createGain();
-      osc.type = type || 'square';
-      osc.frequency.value = freq;
-      gain.gain.value = volume || 0.04;
-      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
-      osc.connect(gain);
-      gain.connect(ac.destination);
-      osc.start();
-      osc.stop(ac.currentTime + duration);
-    } catch (e) {}
-  }
-
-  function playBootBeep() { playTone(800, 0.06, 'square', 0.03); }
-  function playKeyClick() { playTone(1200, 0.03, 'square', 0.02); }
-  function playHoverTone() { playTone(600, 0.08, 'sine', 0.02); }
-  function playEnterTone() { playTone(400, 0.12, 'sawtooth', 0.03); }
-
-  if (soundToggle) {
-    soundToggle.textContent = soundEnabled ? '[SFX: ON]' : '[SFX: OFF]';
-    soundToggle.addEventListener('click', function () {
-      soundEnabled = !soundEnabled;
-      localStorage.setItem('sfx', soundEnabled ? 'on' : 'off');
-      soundToggle.textContent = soundEnabled ? '[SFX: ON]' : '[SFX: OFF]';
-      if (soundEnabled) playTone(500, 0.1, 'sine', 0.03);
-    });
   }
 
   // Terminal keypress sounds
