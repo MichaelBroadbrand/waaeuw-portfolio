@@ -702,16 +702,25 @@ document.addEventListener('DOMContentLoaded', function () {
     initMatrix();
     window.addEventListener('resize', initMatrix);
 
+    var matrixTrailLength = 6;
+
     function drawMatrix() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
-      ctx.fillStyle = '#FF0000';
+      ctx.clearRect(0, 0, matrixCanvas.width, matrixCanvas.height);
       ctx.font = matrixFontSize + 'px monospace';
 
       for (var mi = 0; mi < matrixDrops.length; mi++) {
-        var text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
-        ctx.fillText(text, mi * matrixFontSize, matrixDrops[mi] * matrixFontSize);
-        if (matrixDrops[mi] * matrixFontSize > matrixCanvas.height && Math.random() > 0.975) {
+        // Draw trail behind the head
+        for (var t = 0; t < matrixTrailLength; t++) {
+          var row = matrixDrops[mi] - t;
+          if (row < 0) continue;
+          var y = row * matrixFontSize;
+          if (y > matrixCanvas.height) continue;
+          var alpha = t === 0 ? 1 : (1 - t / matrixTrailLength) * 0.5;
+          ctx.fillStyle = 'rgba(255, 0, 0, ' + alpha + ')';
+          var text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+          ctx.fillText(text, mi * matrixFontSize, y);
+        }
+        if (matrixDrops[mi] * matrixFontSize > matrixCanvas.height + matrixTrailLength * matrixFontSize && Math.random() > 0.975) {
           matrixDrops[mi] = 0;
         }
         matrixDrops[mi]++;
