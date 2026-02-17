@@ -203,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
       '> READY.'
     ];
 
-    playBootSound();
     var lineIndex = 0;
     function typeLine() {
       if (lineIndex >= bootLines.length) {
