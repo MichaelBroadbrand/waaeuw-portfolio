@@ -286,6 +286,48 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ================================================
+     SKILL CELL SCRAMBLE ON HOVER
+     ================================================ */
+  if (!prefersReduced) {
+    var skillCells = document.querySelectorAll('.skills__cell');
+    var scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/*_&';
+
+    skillCells.forEach(function (cell) {
+      var originalText = cell.textContent;
+      var scrambleInterval = null;
+
+      cell.addEventListener('mouseenter', function () {
+        var text = originalText;
+        var frame = 0;
+        var totalFrames = 8;
+
+        if (scrambleInterval) clearInterval(scrambleInterval);
+        scrambleInterval = setInterval(function () {
+          cell.textContent = text.split('').map(function (ch, i) {
+            if (ch === ' ') return ' ';
+            if (i < (frame / totalFrames) * text.length) return text[i];
+            return scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+          }).join('');
+          frame++;
+          if (frame > totalFrames) {
+            clearInterval(scrambleInterval);
+            scrambleInterval = null;
+            cell.textContent = originalText;
+          }
+        }, 30);
+      });
+
+      cell.addEventListener('mouseleave', function () {
+        if (scrambleInterval) {
+          clearInterval(scrambleInterval);
+          scrambleInterval = null;
+        }
+        cell.textContent = originalText;
+      });
+    });
+  }
+
+  /* ================================================
      SCROLL PROGRESS BAR
      ================================================ */
   var progressBar = document.getElementById('progress');
@@ -427,7 +469,7 @@ document.addEventListener('DOMContentLoaded', function () {
       projects: 'PROJECTS:\n  • ENERGY LEGENDS\n  • PULSE\n  • PICK A ANSWER\n  • PERFECT FREEZE\n  • BHOP-TEST',
       skills: 'SKILL CATEGORIES:\n  • GAMEPLAY\n  • DATA & PERSISTENCE\n  • NETWORKING\n  • UI & POLISH',
       discord: 'DISCORD: waaeuw\nhttps://discordapp.com/users/321284718035468288',
-      about: 'WAAEUW — Roblox developer. ~1yr scripting on Roblox, 3+ years programming. Gameplay systems, data persistence, UI, networking. Available for commissions.'
+      about: 'WAAEUW — Roblox developer. ~2yrs scripting on Roblox, 3+ years programming. Gameplay systems, data persistence, UI, networking. Available for commissions.'
     };
 
     termInput.addEventListener('keydown', function (e) {
@@ -878,5 +920,154 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.style.transform = '';
       });
     });
+  }
+
+  /* ================================================
+     CURSOR PARTICLE TRAIL
+     ================================================ */
+  if (cursorDot && !isTouch && !prefersReduced) {
+    var particleCount = 0;
+    var maxParticles = 30;
+    var lastParticleTime = 0;
+
+    document.addEventListener('mousemove', function (e) {
+      var now = Date.now();
+      if (now - lastParticleTime < 30) return;
+      if (particleCount >= maxParticles) return;
+      lastParticleTime = now;
+
+      var particle = document.createElement('div');
+      particle.className = 'cursor-particle';
+      var offsetX = (Math.random() - 0.5) * 8;
+      var offsetY = (Math.random() - 0.5) * 8;
+      particle.style.left = (e.clientX - 2.5 + offsetX) + 'px';
+      particle.style.top = (e.clientY - 2.5 + offsetY) + 'px';
+      document.body.appendChild(particle);
+      particleCount++;
+
+      setTimeout(function () {
+        particle.remove();
+        particleCount--;
+      }, 400);
+    });
+  }
+
+  /* ================================================
+     STAGGERED LETTER ANIMATION — "AVAILABLE FOR COMMISSIONS"
+     ================================================ */
+  var availableEl = document.querySelector('.contact__available');
+
+  if (availableEl && !prefersReduced) {
+    var availableText = availableEl.textContent;
+    availableEl.innerHTML = '';
+
+    availableText.split('').forEach(function (ch) {
+      var span = document.createElement('span');
+      span.className = 'letter';
+      if (ch === ' ') {
+        span.innerHTML = '&nbsp;';
+      } else {
+        span.textContent = ch;
+      }
+      availableEl.appendChild(span);
+    });
+
+    if ('IntersectionObserver' in window) {
+      var letterObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var letters = entry.target.querySelectorAll('.letter');
+            letters.forEach(function (letter, i) {
+              setTimeout(function () {
+                letter.classList.add('letter-visible');
+              }, i * 25);
+            });
+            letterObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      letterObserver.observe(availableEl);
+    }
+  } else if (availableEl) {
+    // Reduced motion: show immediately
+    var spans = availableEl.querySelectorAll('.letter');
+    if (spans.length) {
+      spans.forEach(function (s) { s.classList.add('letter-visible'); });
+    }
+  }
+
+  /* ================================================
+     ABOUT TEXT DECRYPT EFFECT
+     ================================================ */
+  var aboutSection = document.querySelector('.about');
+  var aboutParagraphs = document.querySelectorAll('.about__content p');
+
+  if (aboutParagraphs.length && aboutSection && !prefersReduced) {
+    var decryptChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/*_&#@$%';
+    var aboutData = [];
+    var aboutDecrypted = false;
+
+    aboutParagraphs.forEach(function (p) {
+      aboutData.push({ el: p, text: p.textContent });
+    });
+
+    function runAboutDecrypt() {
+      if (aboutDecrypted) return;
+
+      // If about section is already visible (was revealed during boot), use an IntersectionObserver
+      // to wait until the user actually scrolls to it
+      var aboutDecryptObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && !aboutDecrypted) {
+            aboutDecrypted = true;
+            aboutDecryptObserver.disconnect();
+
+            aboutData.forEach(function (data) {
+              // Scramble all text first
+              data.el.textContent = data.text.split('').map(function (ch) {
+                if (ch === ' ' || ch === '.' || ch === ',') return ch;
+                return decryptChars[Math.floor(Math.random() * decryptChars.length)];
+              }).join('');
+
+              // Then decrypt left-to-right
+              var text = data.text;
+              var totalFrames = 30;
+              var frame = 0;
+
+              var decryptInterval = setInterval(function () {
+                data.el.textContent = text.split('').map(function (ch, i) {
+                  if (ch === ' ' || ch === '.' || ch === ',') return ch;
+                  var revealPoint = (i / text.length) * totalFrames;
+                  if (frame >= revealPoint) return ch;
+                  return decryptChars[Math.floor(Math.random() * decryptChars.length)];
+                }).join('');
+                frame++;
+
+                if (frame > totalFrames) {
+                  clearInterval(decryptInterval);
+                  data.el.textContent = text;
+                }
+              }, 30);
+            });
+          }
+        });
+      }, { threshold: 0.3 });
+
+      aboutDecryptObserver.observe(aboutSection);
+    }
+
+    // Wait until boot sequence is done before setting up the decrypt
+    if (document.body.classList.contains('boot-active')) {
+      var bootMO = new MutationObserver(function () {
+        if (!document.body.classList.contains('boot-active')) {
+          bootMO.disconnect();
+          runAboutDecrypt();
+        }
+      });
+      bootMO.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    } else {
+      runAboutDecrypt();
+    }
   }
 });

@@ -695,9 +695,12 @@ body.custom-cursor button {
   cursor: none;
 }
 
-body.custom-cursor .cursor-dot,
-body.custom-cursor .cursor-trail {
+body.custom-cursor .cursor-dot {
   display: block;
+}
+
+body.custom-cursor .cursor-trail {
+  display: none;
 }
 
 /* ============================================
@@ -969,6 +972,42 @@ body.dark {
 }
 
 /* ============================================
+   CURSOR PARTICLE TRAIL
+   ============================================ */
+
+.cursor-particle {
+  position: fixed;
+  width: 5px;
+  height: 5px;
+  background: var(--red);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10002;
+  animation: particleFade 400ms ease-out forwards;
+}
+
+@keyframes particleFade {
+  0% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0); }
+}
+
+/* ============================================
+   STAGGERED LETTER ANIMATION
+   ============================================ */
+
+.contact__available .letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.contact__available .letter.letter-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================
    REDUCED MOTION (additions for new features)
    ============================================ */
 
@@ -999,5 +1038,15 @@ body.dark {
 
   .hero__ascii {
     animation: none;
+  }
+
+  .cursor-particle {
+    display: none;
+  }
+
+  .contact__available .letter {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
