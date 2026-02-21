@@ -527,6 +527,7 @@ body::before {
   font-family: var(--font-body);
   position: relative;
   z-index: 1;
+  background: var(--white);
   transition: transform 0.15s, box-shadow 0.15s;
   display: block;
   text-decoration: none;
