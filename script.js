@@ -758,6 +758,11 @@ document.addEventListener('DOMContentLoaded', function () {
     initDots();
     window.addEventListener('resize', initDots);
 
+    // Re-init when hero changes size (e.g. Discord activity appears/hides)
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(initDots).observe(dotHero);
+    }
+
     dotHero.addEventListener('mousemove', function (e) {
       var rect = dotCanvas.getBoundingClientRect();
       dotMouseX = e.clientX - rect.left;
