@@ -898,6 +898,101 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ================================================
+     DISCORD LIVE STATUS (Lanyard API)
+     ================================================ */
+  var DISCORD_USER_ID = '321284718035468288';
+
+  function fetchDiscordStatus() {
+    var avatar = document.getElementById('discord-avatar');
+    var statusDot = document.getElementById('discord-status-dot');
+    var usernameEl = document.getElementById('discord-username');
+    var statusText = document.getElementById('discord-status-text');
+    var activityWrap = document.getElementById('discord-activity');
+    var activityName = document.getElementById('discord-activity-name');
+    var activityDetail = document.getElementById('discord-activity-detail');
+
+    if (!avatar || !statusDot) return;
+
+    fetch('https://api.lanyard.rest/v1/users/' + DISCORD_USER_ID)
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (!json.success || !json.data) return;
+        var d = json.data;
+        var user = d.discord_user;
+
+        // Avatar
+        if (user && user.avatar) {
+          avatar.src = 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=128';
+        }
+
+        // Username
+        if (usernameEl && user) {
+          usernameEl.textContent = '@' + (user.username || 'WAAEUW').toUpperCase();
+        }
+
+        // Status dot
+        var status = d.discord_status || 'offline';
+        statusDot.className = 'profile-card__status-dot profile-card__status-dot--' + status;
+
+        // Status text
+        if (statusText) {
+          statusText.textContent = status.toUpperCase();
+        }
+
+        // Activity
+        if (d.activities && d.activities.length > 0 && activityWrap) {
+          var activity = null;
+          for (var i = 0; i < d.activities.length; i++) {
+            if (d.activities[i].type !== 4) {
+              activity = d.activities[i];
+              break;
+            }
+          }
+          if (activity) {
+            activityWrap.style.display = '';
+            if (activityName) activityName.textContent = activity.name.toUpperCase();
+            if (activityDetail) {
+              activityDetail.textContent = (activity.details || activity.state || '').toUpperCase();
+            }
+          } else {
+            activityWrap.style.display = 'none';
+          }
+        } else if (activityWrap) {
+          activityWrap.style.display = 'none';
+        }
+      })
+      .catch(function () {
+        // Lanyard unavailable — keep default OFFLINE state
+      });
+  }
+
+  fetchDiscordStatus();
+  setInterval(fetchDiscordStatus, 45000);
+
+  /* ================================================
+     ROBLOX AVATAR REFRESH
+     ================================================ */
+  (function () {
+    var robloxAvatar = document.getElementById('roblox-avatar');
+    if (!robloxAvatar) return;
+
+    robloxAvatar.onerror = function () {
+      this.style.display = 'none';
+    };
+
+    fetch('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=192243380&size=150x150&format=Png&isCircular=false')
+      .then(function (res) { return res.json(); })
+      .then(function (json) {
+        if (json.data && json.data[0] && json.data[0].imageUrl) {
+          robloxAvatar.src = json.data[0].imageUrl;
+        }
+      })
+      .catch(function () {
+        // CORS blocked — keep hardcoded CDN URL
+      });
+  })();
+
+  /* ================================================
      MAGNETIC BUTTONS
      ================================================ */
   if (!isTouch && !prefersReduced) {

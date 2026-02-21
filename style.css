@@ -497,6 +497,150 @@ body::before {
 }
 
 /* ============================================
+   PROFILE CARDS (Roblox + Discord)
+   ============================================ */
+
+.profile-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin: 2rem 0;
+  max-width: 720px;
+}
+
+.profile-card {
+  border: var(--border-inv);
+  padding: 1.25rem;
+  font-family: var(--font-body);
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.profile-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0 var(--red);
+}
+
+.profile-card__badge {
+  display: inline-block;
+  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--red);
+  margin-bottom: 1rem;
+}
+
+.profile-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-card__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border: 2px solid var(--red);
+}
+
+.profile-card__avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.profile-card__status-dot {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  background: #808080;
+}
+
+.profile-card__status-dot--online { background: #23a55a; }
+.profile-card__status-dot--idle { background: #f0b232; }
+.profile-card__status-dot--dnd { background: #f23f43; }
+.profile-card__status-dot--offline { background: #808080; }
+
+.profile-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.profile-card__username {
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.profile-card__subtitle {
+  font-size: clamp(0.65rem, 1vw, 0.8rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--red);
+}
+
+.profile-card__id {
+  font-size: clamp(0.6rem, 0.9vw, 0.7rem);
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+.profile-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.profile-card__tag {
+  font-size: clamp(0.55rem, 0.9vw, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.5rem;
+  border: 2px solid var(--red);
+  color: var(--red);
+}
+
+.profile-card__activity {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.profile-card__activity-label {
+  font-size: clamp(0.55rem, 0.9vw, 0.65rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--red);
+}
+
+.profile-card__activity-name {
+  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.profile-card__activity-detail {
+  font-size: clamp(0.6rem, 1vw, 0.75rem);
+  opacity: 0.6;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
    FOOTER
    ============================================ */
 
@@ -609,6 +753,11 @@ body::before {
     animation: none;
   }
 
+  .profile-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
   body::before {
     animation: none;
   }
@@ -647,6 +796,10 @@ body::before {
 
   .hero__ascii {
     font-size: 0.25rem;
+  }
+
+  .profile-cards {
+    grid-template-columns: 1fr;
   }
 
   .sound-toggle {
