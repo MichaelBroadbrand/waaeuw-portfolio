@@ -898,76 +898,104 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /* ================================================
-     DISCORD LIVE STATUS (Lanyard API)
+     DISCORD LIVE STATUS (Lanyard WebSocket)
      ================================================ */
   var DISCORD_USER_ID = '321284718035468288';
+  var discordEls = {
+    avatar: document.getElementById('discord-avatar'),
+    statusDot: document.getElementById('discord-status-dot'),
+    username: document.getElementById('discord-username'),
+    statusText: document.getElementById('discord-status-text'),
+    activityWrap: document.getElementById('discord-activity'),
+    activityName: document.getElementById('discord-activity-name'),
+    activityDetail: document.getElementById('discord-activity-detail')
+  };
 
-  function fetchDiscordStatus() {
-    var avatar = document.getElementById('discord-avatar');
-    var statusDot = document.getElementById('discord-status-dot');
-    var usernameEl = document.getElementById('discord-username');
-    var statusText = document.getElementById('discord-status-text');
-    var activityWrap = document.getElementById('discord-activity');
-    var activityName = document.getElementById('discord-activity-name');
-    var activityDetail = document.getElementById('discord-activity-detail');
+  function updateDiscordUI(d) {
+    if (!d || !discordEls.avatar) return;
+    var user = d.discord_user;
 
-    if (!avatar || !statusDot) return;
+    // Avatar
+    if (user && user.avatar) {
+      var newSrc = 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=128';
+      if (discordEls.avatar.src !== newSrc) discordEls.avatar.src = newSrc;
+    }
 
-    fetch('https://api.lanyard.rest/v1/users/' + DISCORD_USER_ID)
-      .then(function (res) { return res.json(); })
-      .then(function (json) {
-        if (!json.success || !json.data) return;
-        var d = json.data;
-        var user = d.discord_user;
+    // Username
+    if (discordEls.username && user) {
+      discordEls.username.textContent = '@' + (user.username || 'WAAEUW').toUpperCase();
+    }
 
-        // Avatar
-        if (user && user.avatar) {
-          avatar.src = 'https://cdn.discordapp.com/avatars/' + user.id + '/' + user.avatar + '.png?size=128';
+    // Status dot
+    var status = d.discord_status || 'offline';
+    discordEls.statusDot.className = 'profile-card__status-dot profile-card__status-dot--' + status;
+
+    // Status text
+    if (discordEls.statusText) {
+      discordEls.statusText.textContent = status.toUpperCase();
+    }
+
+    // Activity
+    if (d.activities && d.activities.length > 0 && discordEls.activityWrap) {
+      var activity = null;
+      for (var i = 0; i < d.activities.length; i++) {
+        if (d.activities[i].type !== 4) {
+          activity = d.activities[i];
+          break;
         }
-
-        // Username
-        if (usernameEl && user) {
-          usernameEl.textContent = '@' + (user.username || 'WAAEUW').toUpperCase();
+      }
+      if (activity) {
+        discordEls.activityWrap.style.display = '';
+        if (discordEls.activityName) discordEls.activityName.textContent = activity.name.toUpperCase();
+        if (discordEls.activityDetail) {
+          discordEls.activityDetail.textContent = (activity.details || activity.state || '').toUpperCase();
         }
-
-        // Status dot
-        var status = d.discord_status || 'offline';
-        statusDot.className = 'profile-card__status-dot profile-card__status-dot--' + status;
-
-        // Status text
-        if (statusText) {
-          statusText.textContent = status.toUpperCase();
-        }
-
-        // Activity
-        if (d.activities && d.activities.length > 0 && activityWrap) {
-          var activity = null;
-          for (var i = 0; i < d.activities.length; i++) {
-            if (d.activities[i].type !== 4) {
-              activity = d.activities[i];
-              break;
-            }
-          }
-          if (activity) {
-            activityWrap.style.display = '';
-            if (activityName) activityName.textContent = activity.name.toUpperCase();
-            if (activityDetail) {
-              activityDetail.textContent = (activity.details || activity.state || '').toUpperCase();
-            }
-          } else {
-            activityWrap.style.display = 'none';
-          }
-        } else if (activityWrap) {
-          activityWrap.style.display = 'none';
-        }
-      })
-      .catch(function () {
-        // Lanyard unavailable — keep default OFFLINE state
-      });
+      } else {
+        discordEls.activityWrap.style.display = 'none';
+      }
+    } else if (discordEls.activityWrap) {
+      discordEls.activityWrap.style.display = 'none';
+    }
   }
 
-  fetchDiscordStatus();
-  setInterval(fetchDiscordStatus, 45000);
+  function connectLanyardWS() {
+    if (!discordEls.avatar || !discordEls.statusDot) return;
+    var ws = new WebSocket('wss://api.lanyard.rest/socket');
+    var heartbeatInterval = null;
+
+    ws.onmessage = function (event) {
+      var msg = JSON.parse(event.data);
+
+      // op 1: Hello — start heartbeat and subscribe
+      if (msg.op === 1) {
+        heartbeatInterval = setInterval(function () {
+          ws.send(JSON.stringify({ op: 3 }));
+        }, msg.d.heartbeat_interval);
+
+        ws.send(JSON.stringify({
+          op: 2,
+          d: { subscribe_to_id: DISCORD_USER_ID }
+        }));
+      }
+
+      // op 0: Event — initial state or presence update
+      if (msg.op === 0) {
+        updateDiscordUI(msg.d);
+      }
+    };
+
+    ws.onclose = function () {
+      clearInterval(heartbeatInterval);
+      // Reconnect after 5 seconds
+      setTimeout(connectLanyardWS, 5000);
+    };
+
+    ws.onerror = function () {
+      ws.close();
+    };
+  }
+
+  connectLanyardWS();
 
   /* ================================================
      ROBLOX AVATAR REFRESH
